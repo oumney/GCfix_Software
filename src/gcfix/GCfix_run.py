@@ -17,11 +17,13 @@ def main():
     parser.add_argument('--coverage_flag', type=int, default=0, help='Whether to create corrected coverage profile or not')
     parser.add_argument('--coverage_regions', type=str, default='hg19__GRCh37/correction_factor_estimation_bin_locations.csv', help='Genome regions/bins where the corrected coverage is desired')
     parser.add_argument('--coverage_folder', type=str, default='Sample_Output/Coverage_Profiles/', help='Output folder where the corrected coverage profiles will be created for the input samples')
+    parser.add_argument('--outlier_corr_method', type=str, default='default', help='Method to correct for outliers. Options: Default = as in original paper; perc975 = set correction factors above 97.5 percentile to the 97.5 percentile')
 
     args = parser.parse_args()
     input_path, output_folder = pathlib.Path(args.input), pathlib.Path(args.output_folder)
     mapq = args.MAPQ
     start_len, end_len = args.start_length, args.end_length
+    outlier_corr_method = args.outlier_corr_method
     CPU = args.CPU
     ref_genome_path = args.ref
     ref_genome_GC_npy = args.ref_genome_GC
@@ -54,7 +56,7 @@ def main():
         subprocess.run(command, shell=True)
 
         output_csv = output_folder / f"{input_bam_filename[:-4]}__correction_factors.csv"
-        command = f"gcfix_single_sample_correction_factor {output_npy} {output_csv} {start_len} {end_len} {ref_genome_GC_npy}"
+        command = f"gcfix_single_sample_correction_factor {output_npy} {output_csv} {start_len} {end_len} {ref_genome_GC_npy} {outlier_corr_method}"
         subprocess.run(command, shell=True)
         os.remove(output_npy)
 
