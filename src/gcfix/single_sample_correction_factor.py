@@ -48,10 +48,17 @@ def construct_GC_bias(sample_lengths, ref_lengths, X, lag, lower_cnt, upper_cnt)
     GC_array = GC_array / np.mean(GC_array)
     return GC_array
 
-def post_process_outlier(arr):
-    min_thr = min(1/20, np.percentile(arr, 1)) # this thr can be 0 or less also
-    positive_min = np.min(arr[arr>0])
-    final_thr = max(min_thr, positive_min) # ensures +ve GC bias value
+def post_process_outlier(arr, method='default'):
+
+    if method == 'default':
+        min_thr = min(1/20, np.percentile(arr, 1)) # this thr can be 0 or less also
+        positive_min = np.min(arr[arr>0])
+        final_thr = max(min_thr, positive_min) # ensures +ve GC bias value
+    elif method == 'perc975':
+        final_thr = np.percentile(arr,2.5)
+    else:
+        raise NotImplementedError(f"{method} is not supported")
+    
     arr[arr<final_thr] = final_thr
 
 def main():
@@ -59,6 +66,7 @@ def main():
     corr_csv = sys.argv[2]
     start_len, end_len = int(sys.argv[3]), int(sys.argv[4])
     ref_genome_GC_npy = sys.argv[5]
+    outlier_corr_method = sys.argv[6]
 
     lower_cnt, upper_cnt = 10, 90
     lag = 10
@@ -88,7 +96,7 @@ def main():
         else:
             final_GC_array[length-start_len, :] = construct_GC_bias(sample_len_GC_array[start_len_ind: end_len_ind+1, :], 
                                 ref_len_GC_array[start_len_ind: end_len_ind+1, :], X, lag, lower_cnt, upper_cnt)
-    post_process_outlier(final_GC_array)
+    post_process_outlier(final_GC_array, method=outlier_corr_method)
 
     correction_factors[:, lower_cnt+lag: upper_cnt-lag+1] = 1.0/final_GC_array
     columns = [str(i) for i in range(0, 101)]
