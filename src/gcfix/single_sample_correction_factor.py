@@ -56,6 +56,8 @@ def post_process_outlier(arr, method='default'):
         final_thr = max(min_thr, positive_min) # ensures +ve GC bias value
     elif method == 'perc975':
         final_thr = np.percentile(arr,2.5)
+        # ensure no correction factors bigger than 20
+        final_thr = max(1/20, final_thr)
     else:
         raise NotImplementedError(f"{method} is not supported")
     
