@@ -58,7 +58,7 @@ def main():
         output_csv = output_folder / f"{input_bam_filename[:-4]}__correction_factors.csv"
         command = f"gcfix_single_sample_correction_factor {output_npy} {output_csv} {start_len} {end_len} {ref_genome_GC_npy} {outlier_corr_method}"
         subprocess.run(command, shell=True)
-        os.remove(output_npy)
+        #os.remove(output_npy)
 
         if GC_flag == 1:
             # Make GC_tag_folder directory if it doesn't exist
