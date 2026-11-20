@@ -4,24 +4,9 @@ import numpy as np
 import sys
 from multiprocessing import Pool
 import time
+from functools import partial
 
-
-fragment_length = int(sys.argv[1]) # one length from 51-400
-lag = 10
-mappable_regions_path = sys.argv[2]
-ref_seq_path = sys.argv[3]
-out_dir = sys.argv[4]
-out_file = f'{out_dir}/{fragment_length}.npy'
-CPU = int(sys.argv[5])
-
-bin_locations = pd.read_csv(mappable_regions_path).values.tolist()
-bin_no = len(bin_locations)
-GC_window_size = fragment_length - 2*lag
-final_GC_array = np.zeros((101))
-
-
-def count_GC(sub_bin_locations):
-    global ref_seq_path, fragment_length, GC_window_size
+def count_GC(sub_bin_locations, ref_seq_path=None, fragment_length=None, GC_window_size=None, lag=None):
     GC_array = np.zeros((101))
     ref_seq = pysam.FastaFile(ref_seq_path)
     all_ref_contigs = ref_seq.references
@@ -54,13 +39,39 @@ def count_GC(sub_bin_locations):
             GC_array[GC_content] += 1
     return GC_array
 
-p = Pool(processes=CPU)
-sub_bin_locations = np.array_split(bin_locations, CPU)
-GC_array_list = p.map(count_GC, sub_bin_locations, 1)
+def main():
 
-p.close()
-p.join()
+    fragment_length = int(sys.argv[1]) # one length from 51-400
+    lag = 10
+    mappable_regions_path = sys.argv[2]
+    ref_seq_path = sys.argv[3]
+    out_dir = sys.argv[4]
+    out_file = f'{out_dir}/{fragment_length}.npy'
+    CPU = int(sys.argv[5])
 
-for i, GC_array in enumerate(GC_array_list):
-    final_GC_array = final_GC_array + GC_array
-np.save(out_file, final_GC_array)
+    bin_locations = pd.read_csv(mappable_regions_path).values.tolist()
+    bin_no = len(bin_locations)
+    GC_window_size = fragment_length - 2*lag
+    final_GC_array = np.zeros((101))
+
+    worker = partial(count_GC, 
+                     ref_seq_path=ref_seq_path, 
+                     fragment_length=fragment_length, 
+                     GC_window_size=GC_window_size, 
+                     lag=lag)
+
+    p = Pool(processes=CPU)
+    sub_bin_locations = np.array_split(bin_locations, CPU)
+    GC_array_list = p.map(worker, sub_bin_locations, 1)
+
+    p.close()
+    p.join()
+
+    for i, GC_array in enumerate(GC_array_list):
+        final_GC_array = final_GC_array + GC_array
+    np.save(out_file, final_GC_array)
+
+if __name__ == "__main__":
+    main()
+
+    

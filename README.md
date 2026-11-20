@@ -49,6 +49,8 @@ pip install .
      _Optional argument, string type (default: `hg19__GRCh37/ref.fa`)._
    - **REF_GC**: Path to expected GC count frequencies from the reference genome (`.npy` file).  
      _Optional argument, string type (default: `hg19__GRCh37/ref_genome_GC.npy`)._
+     - I have changed the name of hg38/ref_genome_GC.npy --> ref_genome_GC_51_400.npy to indicate the start/end lengths used to generate it.
+     - I have added in hg38/ref_genome_GC_25_400.npy to include these fragments.
    - **ESTIMATION_REGIONS**: Path to the genome region list for GC bias estimation.  
      _Optional argument, string type (default: `hg19__GRCh37/correction_factor_estimation_bin_locations.csv`)._
      - The default bin regions consist of over 25,000 bins (each 100Kb) from the hg19/GRCh37 reference genome, excluding low-quality, blacklist, unusual, and low mappability regions.
