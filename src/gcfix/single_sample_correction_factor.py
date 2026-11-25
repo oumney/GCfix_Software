@@ -69,7 +69,8 @@ def main():
     start_len, end_len = int(sys.argv[3]), int(sys.argv[4])
     ref_genome_GC_npy = sys.argv[5]
     outlier_corr_method = sys.argv[6]
-    normalise_around_one = sys.argv[7]
+    # convert back to boolean
+    normalise_around_one = sys.argv[7] == 'True'
 
     lower_cnt, upper_cnt = 10, 90
     lag = 10
@@ -103,7 +104,7 @@ def main():
 
     x = 1.0/final_GC_array
     if normalise_around_one:
-         x = x/x.mean(axis=1, keepdims=True)
+        x = x/x.mean(axis=1, keepdims=True)
     correction_factors[:, lower_cnt+lag: upper_cnt-lag+1] = x
     columns = [str(i) for i in range(0, 101)]
     df = pd.DataFrame(correction_factors.tolist())
